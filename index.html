@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WorkPulse — Employee Productivity Management</title>
+<style>
+:root{--bg:#f5f7fb;--panel:#fff;--text:#172033;--muted:#718096;--line:#e5eaf1;--primary:#3867d6;--dark:#172033;--good:#2f855a;--warn:#a16b00;--bad:#c53030;--shadow:0 8px 24px rgba(23,32,51,.06)}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);color:var(--text)}
+button,input,select{font:inherit}.hidden{display:none!important}.app{min-height:100vh}
+.login{min-height:100vh;display:grid;place-items:center;padding:20px;background:linear-gradient(135deg,#eef3ff,#f8fafc)}
+.login-card{width:min(430px,100%);background:#fff;border:1px solid var(--line);border-radius:20px;padding:34px;box-shadow:var(--shadow)}
+.brand{font-size:27px;font-weight:900}.brand span{color:var(--primary)}.muted{color:var(--muted)}.login-card h1{margin:8px 0 8px}.login-card input{width:100%;padding:13px;margin:7px 0;border:1px solid #d8dfeb;border-radius:9px}.btn{border:0;border-radius:9px;padding:11px 15px;cursor:pointer}.primary{background:var(--primary);color:#fff}.secondary{background:#eef2f8;color:#25324a}.danger{background:#fde8e8;color:#a82c2c}.full{width:100%;margin-top:12px}.demo{margin-top:15px;background:#f6f8fc;padding:12px;border-radius:10px;font-size:12px}
+.layout{display:flex;min-height:100vh}.sidebar{position:fixed;inset:0 auto 0 0;width:245px;background:var(--dark);color:#fff;padding:20px 15px;z-index:5}.side-brand{font-size:23px;font-weight:900;padding:8px 12px 26px}.side-brand span{color:#80a7ff}.nav button{display:block;width:100%;background:transparent;border:0;color:#cbd5e5;text-align:left;padding:12px;border-radius:9px;margin:3px 0;cursor:pointer}.nav button:hover,.nav button.active{background:#283852;color:#fff}.logout{position:absolute;bottom:20px;left:15px;width:calc(100% - 30px)}
+.main{margin-left:245px;width:calc(100% - 245px);padding:25px;max-width:1600px}.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:23px}.topbar h1{margin:0;font-size:27px}.topbar p{margin:5px 0 0;color:var(--muted);font-size:13px}.user-chip{background:#fff;border:1px solid var(--line);padding:9px 12px;border-radius:10px;font-size:13px}
+.page{display:none}.page.active{display:block}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}.card,.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}.card{padding:19px}.label{font-size:13px;color:var(--muted)}.value{font-size:29px;font-weight:850;margin-top:8px}.small{font-size:12px;color:var(--muted);margin-top:7px}
+.two{display:grid;grid-template-columns:1.35fr .65fr;gap:16px;margin-top:16px}.panel{padding:20px}.panel h2{font-size:17px;margin:0 0 16px}.bar-chart{height:230px;display:flex;align-items:flex-end;gap:15px;padding-top:10px}.bar-item{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px}.bar{width:75%;max-width:45px;background:var(--primary);border-radius:6px 6px 2px 2px}.bar-label,.bar-val{font-size:11px;color:var(--muted)}
+.progress{height:10px;background:#edf1f6;border-radius:20px;overflow:hidden}.progress>div{height:100%;background:var(--primary)}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:12px 8px;border-bottom:1px solid #edf1f6}th{color:var(--muted);font-weight:650}.status{display:inline-block;padding:5px 9px;border-radius:30px;font-size:11px;font-weight:750}.completed,.present{background:#e7f6ed;color:#287a4b}.pending,.late{background:#fff5d8;color:#956900}.overdue,.absent{background:#fde8e8;color:#b83232}
+.toolbar{display:flex;gap:9px;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap}.toolbar .left{display:flex;gap:8px;flex-wrap:wrap}.toolbar input,.toolbar select,.form input,.form select{padding:10px;border:1px solid #d9e0eb;border-radius:8px;background:#fff}.toolbar input{min-width:220px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.form label{font-size:12px;color:var(--muted);display:block;margin-bottom:5px}.form input,.form select{width:100%}.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:20}.modal{width:min(520px,92%);background:#fff;border-radius:15px;padding:22px}.modal h3{margin-top:0}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.kpi{padding:16px;border:1px solid var(--line);border-radius:11px}.kpi strong{font-size:24px;display:block;margin-top:5px}.notice{padding:14px;background:#f4f7ff;border-left:4px solid var(--primary);border-radius:8px;margin-top:12px;font-size:13px}
+@media(max-width:1000px){.cards{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.sidebar{width:210px}.main{margin-left:210px;width:calc(100% - 210px)}}
+@media(max-width:650px){.sidebar{position:relative;width:100%;height:auto;min-height:0}.layout{display:block}.main{margin:0;width:100%;padding:15px}.logout{position:static;margin-top:10px}.cards,.kpis,.form-grid{grid-template-columns:1fr}.topbar{align-items:flex-start;gap:10px}.topbar h1{font-size:21px}}
+
+/* WorkPulse visual refresh */
+:root{--bg:#f3f6fb;--panel:#ffffff;--text:#101828;--muted:#667085;--line:#e4e9f2;--primary:#5b5ce2;--primary2:#7c5cff;--dark:#101426;--good:#16a36a;--warn:#d99100;--bad:#df4f67;--shadow:0 12px 35px rgba(16,24,40,.07)}
+body{background:radial-gradient(circle at 85% 0%,#ebeaff 0,transparent 28%),var(--bg);color:var(--text)}
+.sidebar{background:linear-gradient(180deg,#11152a,#191d36);box-shadow:10px 0 35px rgba(16,20,40,.12)}
+.side-brand{letter-spacing:-.5px}.side-brand span,.brand span{color:#7b7cf6}
+.nav button{transition:.2s}.nav button:hover,.nav button.active{background:linear-gradient(90deg,rgba(123,124,246,.24),rgba(123,124,246,.08));color:#fff}
+.main{padding:30px}.topbar{margin-bottom:27px}.topbar h1{font-size:30px;letter-spacing:-.7px}.user-chip{border-radius:14px;box-shadow:0 5px 18px rgba(16,24,40,.05)}
+.card,.panel{border-radius:18px;box-shadow:var(--shadow);border-color:#e8ebf3}.card{padding:21px}.value{letter-spacing:-1px}.btn{border-radius:11px;font-weight:700;transition:.18s}.btn:hover{transform:translateY(-1px);filter:brightness(.98)}.primary{background:linear-gradient(135deg,#5b5ce2,#7b61ff)}
+.progress>div{background:linear-gradient(90deg,#5b5ce2,#9a7cff)}
+.panel h2{letter-spacing:-.2px}
+.ai-hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#151936 0%,#25285a 58%,#4d3a89 100%);color:#fff;border:0;padding:28px}.ai-hero:after{content:'';position:absolute;width:260px;height:260px;border-radius:50%;right:-90px;top:-130px;background:rgba(255,255,255,.09);box-shadow:-90px 170px 0 30px rgba(255,255,255,.035)}.ai-hero h2{font-size:24px;margin-bottom:8px;position:relative;z-index:1}.ai-hero .muted{color:#c8cbe0;position:relative;z-index:1}.ai-hero button{position:relative;z-index:2;background:#fff;color:#282a63}.ai-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:16px;margin-top:16px}.ai-score{display:flex;align-items:center;gap:20px}.score-ring{width:128px;height:128px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#7c7df6 var(--score),#edf0f7 0);position:relative;flex:0 0 auto}.score-ring:before{content:'';position:absolute;inset:11px;border-radius:50%;background:#fff}.score-ring b{position:relative;font-size:29px}.insight-list{display:grid;gap:10px;margin-top:15px}.insight{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#fafbfe}.insight strong{display:block;margin-bottom:4px}.chart-wrap{height:260px}.chart-wrap svg{width:100%;height:100%;display:block}.chart-grid{stroke:#edf0f5;stroke-width:1}.chart-axis{fill:#98a2b3;font-size:10px}.chart-bar{fill:url(#wpGrad)}.chart-line{fill:none;stroke:#6b5ce7;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.chart-dot{fill:#fff;stroke:#6b5ce7;stroke-width:3}.ai-empty{padding:18px;border:1px dashed #cfd5e3;border-radius:14px;background:#fafbff;color:#667085}
+@media(max-width:900px){.ai-grid{grid-template-columns:1fr}.main{padding:20px}}
+.admin-only.hidden-admin{display:none!important}.employee-note{margin-top:10px;padding:10px 12px;background:#f3f5ff;border-radius:10px;color:#4b4f78;font-size:12px}
+/* WorkPulse v6 additions — preserve the established indigo, navy and soft-gray palette */
+#leave .cards{margin-bottom:0}.toolbar h2{font-size:17px}.status.approved{background:#e7f6ed;color:#287a4b}.status.rejected{background:#fde8e8;color:#b83232}
+@media(max-width:650px){.toolbar .left{width:100%}.toolbar input{min-width:0;width:100%}table{min-width:700px}}
+</style>
+</head>
+<body>
+
+<div id="loginView" class="login">
+  <div class="login-card">
+    <div class="brand">Work<span>Pulse</span></div>
+    <div class="muted">Employee Productivity Management</div>
+    <h1>Sign in</h1>
+    <p class="muted">Use the demo account to explore the complete website.</p>
+    <input id="email" type="email" placeholder="Email" value="admin@workpulse.demo">
+    <input id="password" type="password" placeholder="Password" value="admin123">
+    <button class="btn primary full" onclick="login()">Sign in</button>
+    <div class="demo"><b>Admin:</b> admin@workpulse.demo / admin123<br><b>Employees:</b> use the employee email + password assigned by Admin.<br>Demo Rahul: rahul@example.com / rahul123</div>
+    <div id="loginError" style="color:#c53030;font-size:12px;margin-top:10px"></div>
+  </div>
+</div>
+
+<div id="appView" class="layout hidden">
+<aside class="sidebar">
+  <div class="side-brand">Work<span>Pulse</span></div>
+  <div class="nav">
+    <button class="active" onclick="page('dashboard',this)">▦ Dashboard</button>
+    <button class="admin-only" onclick="page('employees',this)">👥 Employees</button>
+    <button onclick="page('tasks',this)">✓ Tasks</button>
+    <button onclick="page('attendance',this)">◷ Attendance</button>
+    <button onclick="page('hours',this)">⌚ Working Hours</button>
+    <button onclick="page('leave',this)">🏖 Leave Requests</button>
+    <button onclick="page('approvals',this)">⇄ Approvals</button>
+    <button class="admin-only" onclick="page('audit',this)">▤ Audit Trail</button>
+    <button class="admin-only" onclick="page('reports',this)">◔ Reports</button>
+    <button class="admin-only" onclick="page('ai',this)">✦ AI Analysis</button>
+    <button class="admin-only" onclick="page('settings',this)">⚙ Settings</button>
+  </div>
+  <button class="btn danger logout" onclick="logout()">Log out</button>
+</aside>
+
+<main class="main">
+<div class="topbar"><div><h1 id="pageTitle">Dashboard</h1><p id="pageSub">Company productivity overview</p></div><div class="user-chip" id="userChip"></div></div>
+
+<section id="dashboard" class="page active">
+  <div class="cards">
+    <div class="card"><div class="label">Total Employees</div><div class="value" id="cEmployees">0</div><div class="small">Active employees</div></div>
+    <div class="card"><div class="label">Completed Tasks</div><div class="value" id="cCompleted">0</div><div class="small">From current task list</div></div>
+    <div class="card"><div class="label">Pending Tasks</div><div class="value" id="cPending">0</div><div class="small">Need attention</div></div>
+    <div class="card"><div class="label">Productivity</div><div class="value" id="cProductivity">0%</div><div class="small">Task completion rate</div></div>
+  </div>
+  <div class="two">
+    <div class="panel"><h2>Weekly Productivity</h2><div id="weeklyChart" class="bar-chart"></div></div>
+    <div class="panel"><h2>Overall Progress</h2><div style="font-size:35px;font-weight:850" id="overall">0%</div><div class="progress"><div id="overallBar" style="width:0"></div></div><p class="muted" id="overallText"></p><div class="notice">Productivity is calculated automatically from completed tasks ÷ assigned tasks.</div></div>
+  </div>
+  <div class="panel" style="margin-top:16px"><h2>Recent Tasks</h2><div style="overflow:auto"><table><thead><tr><th>Employee</th><th>Task</th><th>Status</th><th>Deadline</th></tr></thead><tbody id="recent"></tbody></table></div></div>
+</section>
+
+<section id="employees" class="page">
+  <div class="toolbar"><div class="left"><input id="empSearch" placeholder="Search employees..." oninput="renderEmployees()"></div><button class="btn primary" onclick="openEmployee()">+ Add Employee</button></div>
+  <div class="panel" style="overflow:auto"><table><thead><tr><th>ID</th><th>Name</th><th>Department</th><th>Email</th><th>Actions</th></tr></thead><tbody id="employeesTable"></tbody></table></div>
+</section>
+
+<section id="tasks" class="page">
+  <div class="toolbar"><div class="left"><input id="taskSearch" placeholder="Search tasks..." oninput="renderTasks()"><select id="taskFilter" onchange="renderTasks()"><option>All</option><option>Completed</option><option>Pending</option><option>Overdue</option></select></div><button class="btn primary" onclick="openTask()">+ Add Task</button></div>
+  <div class="panel" style="overflow:auto"><table><thead><tr><th>Employee</th><th>Task</th><th>Deadline</th><th>Status</th><th>Action</th></tr></thead><tbody id="tasksTable"></tbody></table></div>
+</section>
+
+<section id="attendance" class="page">
+  <div class="cards">
+    <div class="card"><div class="label">Present Today</div><div class="value" id="presentCount">0</div><div class="small">Verified check-ins</div></div>
+    <div class="card"><div class="label">Not Checked In</div><div class="value" id="absentCount">0</div><div class="small">Employees without a check-in</div></div>
+    <div class="card"><div class="label">Late Arrivals</div><div class="value" id="lateCount">0</div><div class="small">Attendance exceptions</div></div>
+    <div class="card"><div class="label">Verification</div><div class="value" style="font-size:20px">Network + QR</div><div class="small">60-second rotating code</div></div>
+  </div>
+  <div class="two" style="margin-top:16px">
+    <div class="panel" id="qrAdminPanel"><div class="toolbar"><div><h2 style="margin:0 0 5px">Smart QR Attendance</h2><p class="muted small" style="margin:0">Generate a rotating QR code for employees on the approved company network.</p></div><span class="status present">Server verified</span></div>
+      <div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap;margin-top:16px"><div style="width:220px;height:220px;background:#f8f9fc;border:1px solid var(--line);border-radius:16px;display:grid;place-items:center;overflow:hidden;flex:0 0 auto"><img id="attendanceQrImage" alt="Rotating attendance QR code" class="hidden" style="width:210px;height:210px;object-fit:contain"><div id="qrPlaceholder" class="muted small" style="text-align:center;padding:20px">QR code will appear here</div></div><div style="min-width:180px;flex:1"><div class="muted small">CURRENT CODE</div><div id="qrCountdown" style="font-size:36px;font-weight:850;letter-spacing:-1px;margin:4px 0">—</div><div id="qrState" class="muted small">Not started</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button class="btn primary" id="startQrBtn" onclick="startQrAttendance()">Generate QR</button><button class="btn secondary" id="stopQrBtn" onclick="stopQrAttendance()" style="display:none">Stop session</button></div></div></div>
+      <div id="qrMessage" class="notice" style="margin-top:15px">Open WorkPulse using the computer's LAN IP address so employee phones can reach this server. QR tokens expire after 60 seconds.</div>
+    </div>
+    <div class="panel" id="qrEmployeePanel"><h2>Employee check-in</h2><p class="muted">Use your phone to sign in to the Smart Attendance portal, then scan the rotating QR code displayed by your administrator with your phone camera.</p><div class="notice" style="margin:16px 0">The server validates your account, QR expiry, duplicate check-in and approved network before recording attendance.</div><a class="btn primary" href="/scan" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none;text-align:center">Open Mobile Attendance Portal ↗</a><p class="muted small" style="margin-top:12px">Tip: sign in to the portal before scanning, so you are ready before scanning the 60-second code.</p><button class="btn secondary" onclick="employeeCheckout()">Check Out</button><div id="employeeAttendanceMessage" class="muted small" style="margin-top:10px"></div></div>
+  </div>
+  <div class="panel" style="margin-top:16px;overflow:auto"><div class="toolbar"><div><h2 style="margin:0 0 5px">Today's Attendance Records</h2><div class="muted small">Updates automatically from the server.</div></div><button class="btn secondary" onclick="syncServerAttendance(true)">↻ Refresh</button></div><table><thead><tr><th>Employee</th><th>Date</th><th>Check In</th><th>Check Out</th><th>Status</th><th>Verification</th></tr></thead><tbody id="attendanceTable"></tbody></table></div>
+</section>
+
+<section id="hours" class="page">
+  <div class="panel"><h2>Working Hours</h2><p class="muted">Hours are calculated from check-in and check-out timestamps.</p><div class="kpis"><div class="kpi"><span class="muted">Average Hours</span><strong id="avgHours">0h</strong></div><div class="kpi"><span class="muted">Total Hours</span><strong id="totalHours">0h</strong></div><div class="kpi"><span class="muted">Records</span><strong id="hourRecords">0</strong></div></div></div>
+  <div class="panel" style="margin-top:16px;overflow:auto"><h2>Daily Hours</h2><table><thead><tr><th>Employee</th><th>Date</th><th>Check In</th><th>Check Out</th><th>Hours</th></tr></thead><tbody id="hoursTable"></tbody></table></div>
+</section>
+
+
+<section id="leave" class="page">
+  <div class="cards">
+    <div class="card"><div class="label">My / Team Requests</div><div class="value" id="leaveTotal">0</div><div class="small">Recorded leave requests</div></div>
+    <div class="card"><div class="label">Pending</div><div class="value" id="leavePending">0</div><div class="small">Awaiting a decision</div></div>
+    <div class="card"><div class="label">Approved</div><div class="value" id="leaveApproved">0</div><div class="small">Approved requests</div></div>
+    <div class="card"><div class="label">Rejected</div><div class="value" id="leaveRejected">0</div><div class="small">Rejected requests</div></div>
+  </div>
+  <div class="panel" style="margin-top:16px">
+    <div class="toolbar"><div><h2 style="margin:0 0 5px">Leave Management</h2><div class="muted small">Employees submit requests; administrators record decisions in this local prototype.</div></div><button class="btn primary" onclick="openLeave()">+ Request Leave</button></div>
+    <div style="overflow:auto"><table><thead><tr><th>Employee</th><th>Leave Type</th><th>From</th><th>To</th><th>Days</th><th>Reason</th><th>Status</th><th>Action</th></tr></thead><tbody id="leaveTable"></tbody></table></div>
+  </div>
+</section>
+
+<section id="approvals" class="page">
+  <div class="panel">
+    <h2>Request & Financial Approvals</h2>
+    <p class="muted">Configurable local workflow. Requests move through department review, finance review (when required), and a final decision. This demo does not enforce real corporate authority or server-side permissions.</p>
+    <div class="toolbar"><div class="left"><select id="approvalFilter" onchange="renderApprovals()"><option>All</option><option>Pending</option><option>Approved</option><option>Rejected</option></select></div><button class="btn primary" onclick="openApproval()">+ New Request</button></div>
+    <div class="kpis" style="margin-bottom:16px"><div class="kpi"><span class="muted">Pending review</span><strong id="approvalPending">0</strong></div><div class="kpi"><span class="muted">Finance review</span><strong id="financePending">0</strong></div><div class="kpi"><span class="muted">Closed requests</span><strong id="approvalClosed">0</strong></div></div>
+    <div style="overflow:auto"><table><thead><tr><th>Request</th><th>Initiated By</th><th>Department</th><th>Amount</th><th>Stage</th><th>Status</th><th>Actions</th></tr></thead><tbody id="approvalsTable"></tbody></table></div>
+  </div>
+  <div class="notice">Default example rule: requests above ₹50,000 require Department Review → Finance Review → Senior Approval. Lower-value requests require Department Review → Final Decision. Change the threshold in Settings.</div>
+</section>
+
+<section id="audit" class="page">
+  <div class="panel">
+    <div class="toolbar"><div><h2 style="margin:0 0 5px">Audit Trail</h2><div class="muted small">Records actions performed in this browser, including timestamps and notes.</div></div><div class="left"><input id="auditSearch" placeholder="Search audit events..." oninput="renderAudit()"><button class="btn secondary" onclick="exportAudit()">Export CSV</button></div></div>
+    <div style="overflow:auto"><table><thead><tr><th>Timestamp</th><th>Actor</th><th>Action</th><th>Record</th><th>Details</th></tr></thead><tbody id="auditTable"></tbody></table></div>
+  </div>
+  <div class="notice">Local browser audit logs can be edited or cleared by someone with access to this computer. They are useful for demonstrations, not a tamper-proof compliance record.</div>
+</section>
+
+<section id="reports" class="page">
+  <div class="panel"><div class="toolbar"><h2 style="margin:0">Productivity Report</h2><button class="btn secondary" onclick="exportWorkpulse()">Export All Data (CSV)</button></div><div class="kpis"><div class="kpi"><span class="muted">Task Completion</span><strong id="rTask">0%</strong></div><div class="kpi"><span class="muted">Attendance</span><strong id="rAttendance">0%</strong></div><div class="kpi"><span class="muted">Combined Score</span><strong id="rCombined">0%</strong></div></div></div>
+  <div class="two"><div class="panel"><h2>Department Summary</h2><table><thead><tr><th>Department</th><th>Employees</th><th>Tasks</th><th>Completed</th><th>Rate</th></tr></thead><tbody id="deptTable"></tbody></table></div><div class="panel"><h2>Formula</h2><p class="muted">Task completion rate = completed tasks ÷ assigned tasks × 100.</p><p class="muted">Combined productivity = 70% task completion + 30% attendance.</p></div></div>
+</section>
+
+<section id="ai" class="page">
+  <div class="panel ai-hero">
+    <h2>✦ AI Workforce Intelligence</h2>
+    <p class="muted">A visual productivity briefing built from your current tasks, attendance and employee records. Your demo data stays in this browser.</p>
+    <button class="btn primary" onclick="generateAI()">Generate fresh analysis</button>
+  </div>
+  <div id="aiDashboard" class="ai-grid">
+    <div class="panel"><h2>Overall productivity</h2><div id="aiScore" class="ai-empty">Generate an analysis to see the live productivity score.</div><div id="aiInsights" class="insight-list"></div></div>
+    <div class="panel"><h2>Performance mix</h2><div id="aiDonut" class="chart-wrap"></div></div>
+    <div class="panel"><h2>Employee productivity</h2><p class="muted small">Combined score by employee.</p><div id="aiEmployees" class="chart-wrap"></div></div>
+    <div class="panel"><h2>Task status</h2><p class="muted small">Current workload distribution.</p><div id="aiTasks" class="chart-wrap"></div></div>
+  </div>
+</section>
+
+<section id="settings" class="page">
+  <div class="panel form"><h2>Settings</h2><div class="form-grid"><div><label>Company Name</label><input id="company" value="Demo Company"></div><div><label>Productivity task weight (%)</label><input id="taskWeight" type="number" value="70"></div><div><label>Attendance weight (%)</label><input id="attendanceWeight" type="number" value="30"></div></div><button class="btn primary" style="margin-top:15px" onclick="saveSettings()">Save Settings</button><button class="btn secondary" style="margin-top:15px;margin-left:7px" onclick="resetData()">Reset Demo Data</button><div style="height:1px;background:var(--line);margin:22px 0"></div>
+  <h2>Approval Workflow Rules</h2>
+  <div class="form-grid">
+    <div><label>Financial approval threshold (₹)</label><input id="approvalThreshold" type="number" min="0" step="1000" value="50000"></div>
+    <div><label>Workflow controller</label><select id="workflowController"><option>Department supervisor or administrator</option><option>Administrator only</option></select></div>
+    <div><label>Workflow mode</label><select id="workflowMode"><option>Automatic rules</option><option>Manual routing</option></select></div>
+    <div><label>Default department reviewer</label><input id="defaultReviewer" value="Department Supervisor"></div>
+  </div>
+  <p class="muted small">These settings control the prototype's workflow routing. Secure authorization requires a server-side backend.</p>
+  <div id="settingMsg" class="muted" style="margin-top:10px"></div>
+  <div style="height:1px;background:var(--line);margin:22px 0"></div>
+  <h2>Smart Attendance — Approved Wi-Fi Network</h2>
+  <p class="muted small">Only employee attendance scan and checkout requests coming from these network ranges will be accepted. Use the laptop's current Wi-Fi subnet, not the gateway address. Example: laptop IP 192.168.1.25 with subnet mask 255.255.255.0 → enter 192.168.1.0/24.</p>
+  <label for="allowedCidrs">Approved network ranges (comma-separated)</label>
+  <textarea id="allowedCidrs" rows="3" style="width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;font:inherit" placeholder="192.168.1.0/24"></textarea>
+  <div id="networkInfo" class="muted small" style="margin:8px 0">Loading server network information…</div>
+  <button class="btn primary" style="margin-top:8px" onclick="saveAttendanceNetwork()">Save Attendance Network</button>
+  <div id="networkMsg" class="muted" style="margin-top:10px"></div>
+  <div class="notice" style="margin-top:14px">Important: open the WorkPulse admin dashboard on the laptop using its LAN IPv4 address (for example, http://192.168.1.25:3000), not localhost. Connect the employee phone to that same Wi-Fi network before scanning. Network matching is a practical local-network check, not proof against a technically sophisticated spoofing attempt.</div>
+  </div>
+</section>
+</main></div>
+
+<div class="modal-bg" id="modalBg"><div class="modal"><h3 id="modalTitle"></h3><div id="modalBody"></div><div class="modal-actions"><button class="btn secondary" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="submitModal()">Save</button></div></div></div>
+
+<script>
+const seed={
+employees:[
+{id:'EMP001',name:'Rahul Sharma',dept:'Engineering',email:'rahul@example.com',password:'rahul123'},
+{id:'EMP002',name:'Amit Kumar',dept:'Operations',email:'amit@example.com',password:'amit123'},
+{id:'EMP003',name:'Neha Singh',dept:'HR',email:'neha@example.com',password:'neha123'},
+{id:'EMP004',name:'Priya Verma',dept:'Engineering',email:'priya@example.com',password:'priya123'},
+{id:'EMP005',name:'Arjun Mehta',dept:'Finance',email:'arjun@example.com',password:'arjun123'},
+{id:'EMP006',name:'Karan Joshi',dept:'Operations',email:'karan@example.com',password:'karan123'},
+{id:'EMP007',name:'Sneha Gupta',dept:'Engineering',email:'sneha@example.com',password:'sneha123'},
+{id:'EMP008',name:'Ravi Patel',dept:'HR',email:'ravi@example.com',password:'ravi123'}],
+tasks:[
+{id:1,e:'EMP001',title:'Report Preparation',deadline:'2026-10-05',status:'Completed'},
+{id:2,e:'EMP002',title:'Data Analysis',deadline:'2026-10-06',status:'Pending'},
+{id:3,e:'EMP003',title:'Documentation',deadline:'2026-10-04',status:'Overdue'},
+{id:4,e:'EMP004',title:'CAD Review',deadline:'2026-10-07',status:'Completed'},
+{id:5,e:'EMP006',title:'Process Update',deadline:'2026-10-08',status:'Pending'},
+{id:6,e:'EMP007',title:'Testing Report',deadline:'2026-10-09',status:'Completed'},
+{id:7,e:'EMP001',title:'Maintenance Plan',deadline:'2026-10-10',status:'Completed'},
+{id:8,e:'EMP004',title:'Design Review',deadline:'2026-10-11',status:'Completed'}],
+attendance:[
+{id:1,e:'EMP001',date:'2026-10-02',in:'09:05',out:'17:20',status:'Present'},
+{id:2,e:'EMP002',date:'2026-10-02',in:'09:32',out:'17:15',status:'Late'},
+{id:3,e:'EMP003',date:'2026-10-02',in:'09:00',out:'17:05',status:'Present'},
+{id:4,e:'EMP004',date:'2026-10-02',in:'09:10',out:'17:30',status:'Present'},
+{id:5,e:'EMP005',date:'2026-10-02',in:'',out:'',status:'Absent'},
+{id:6,e:'EMP006',date:'2026-10-02',in:'09:02',out:'17:02',status:'Present'}],
+settings:{company:'Demo Company',taskWeight:70,attendanceWeight:30,approvalThreshold:50000,workflowController:'Department supervisor or administrator',workflowMode:'Automatic rules',defaultReviewer:'Department Supervisor'}
+};
+let db=JSON.parse(localStorage.getItem('workpulseDB')||'null')||structuredClone(seed);
+db.settings = Object.assign({approvalThreshold:50000,workflowController:'Department supervisor or administrator',workflowMode:'Automatic rules',defaultReviewer:'Department Supervisor'}, db.settings||{});
+db.leaves = Array.isArray(db.leaves) ? db.leaves : [];
+db.approvals = Array.isArray(db.approvals) ? db.approvals : [];
+db.audit = Array.isArray(db.audit) ? db.audit : [];
+db.employees.forEach(e=>{delete e.password;});save();
+let currentUser=null, currentEmployeeId=null, modalType=null;
+let apiToken='', serverUser=null, qrRefreshTimer=null, qrCountdownTimer=null, attendancePollTimer=null, activeQrExpiry=0, qrSessionActive=false;
+async function apiRequest(path,opts={}){const response=await fetch(path,{...opts,headers:{'Content-Type':'application/json',...(apiToken?{Authorization:'Bearer '+apiToken}:{}),...(opts.headers||{})}});const data=await response.json().catch(()=>({error:'Unexpected server response'}));if(!response.ok)throw Object.assign(new Error(data.error||'Request failed'),{status:response.status,code:data.code});return data;}
+function localTimeFromIso(iso){if(!iso)return '';return new Date(iso).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',hour12:false});}
+async function syncServerEmployees(){if(currentUser!=='Admin')return;try{const d=await apiRequest('/api/admin/employees');for(const u of d.users.filter(x=>x.role!=='Admin')){const old=db.employees.find(e=>e.id===u.id);if(old)Object.assign(old,{name:u.name,dept:u.dept,email:u.email,role:u.role});else db.employees.push({id:u.id,name:u.name,dept:u.dept,email:u.email,role:u.role});}save();}catch(e){console.warn('Employee sync:',e.message)}}
+async function syncServerAttendance(showNotice=false){if(!apiToken)return;try{const endpoint=(currentUser==='Admin'||currentUser==='Manager')?'/api/admin/attendance/today':'/api/attendance/history';const d=await apiRequest(endpoint);const records=d.records||[];for(const r of records){const eid=r.employeeId||r.employee?.id;const employee=r.employee||{};if(eid&&!db.employees.some(e=>e.id===eid)&&employee.name!=='Unknown employee')db.employees.push({id:eid,name:employee.name,dept:employee.dept||'',email:employee.email||'',role:employee.role||'Employee'});const date=r.date;let local=db.attendance.find(a=>a.e===eid&&a.date===date);const mapped={id:'srv_'+r.id,e:eid,date,in:r.checkIn||'',out:r.checkOut||'',status:r.status||'Present',source:'server',verified:true};if(local){Object.assign(local,mapped)}else db.attendance.push(mapped);}save();renderAttendance();renderHours();if(showNotice)alert('Attendance records refreshed from the server.');}catch(e){if(showNotice)alert('Could not refresh server attendance: '+e.message);}}
+
+
+function save(){localStorage.setItem('workpulseDB',JSON.stringify(db))}
+function audit(action,record,details){db.audit.unshift({id:Date.now()+Math.random(),time:new Date().toISOString(),actor:(currentUser==='Admin'?'Administrator':currentUser==='Manager'?'Manager: '+emp(currentEmployeeId):(currentEmployeeId?emp(currentEmployeeId):'Guest')),action,record:String(record||''),details:String(details||'')});db.audit=db.audit.slice(0,500);localStorage.setItem('workpulseDB',JSON.stringify(db));}
+function statusClass(s){return String(s||'Pending').toLowerCase().replace(/[^a-z]/g,'')||'pending';}
+function csvDownload(filename,rows){const csv=rows.map(row=>row.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();URL.revokeObjectURL(a.href);}
+
+async function login(){
+ const e=document.getElementById('email').value.trim().toLowerCase(),p=document.getElementById('password').value;
+ const error=document.getElementById('loginError');error.textContent='Connecting to WorkPulse server…';
+ try{
+   const auth=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:e,password:p})});
+   const payload=await auth.json().catch(()=>({error:'Server response was not valid JSON.'}));
+   if(!auth.ok)throw new Error(payload.error||'Sign-in failed.');
+   apiToken=payload.token;serverUser=payload.user;currentUser=payload.user.role;currentEmployeeId=(currentUser==='Admin'?null:payload.user.id);if(currentEmployeeId){const known=db.employees.find(x=>x.id===currentEmployeeId);if(known)Object.assign(known,{name:payload.user.name,dept:payload.user.dept,email:payload.user.email,role:payload.user.role});else db.employees.push({id:payload.user.id,name:payload.user.name,dept:payload.user.dept,email:payload.user.email,role:payload.user.role});save();}
+   error.textContent='';
+   if(currentUser==='Admin'){await syncServerEmployees();await loadAttendanceNetwork();}
+   document.getElementById('loginView').classList.add('hidden');document.getElementById('appView').classList.remove('hidden');
+   document.querySelectorAll('.admin-only').forEach(x=>x.classList.toggle('hidden-admin',currentUser!=='Admin'));
+   document.getElementById('userChip').textContent=currentUser+(currentEmployeeId?' • '+emp(currentEmployeeId):'')+' • '+db.settings.company;
+   refresh();
+   if(currentUser==='Admin'||currentUser==='Manager')syncServerAttendance();
+ }catch(err){error.textContent=err.message+' Make sure you start WorkPulse using start.bat (not by opening index.html directly).';}
+}
+function logout(){stopQrAttendance();clearInterval(attendancePollTimer);apiToken='';serverUser=null;currentUser=null;currentEmployeeId=null;document.getElementById('appView').classList.add('hidden');document.getElementById('loginView').classList.remove('hidden')}
+function page(id,btn){if(currentUser!=='Admin'&&['employees','reports','ai','settings','audit'].includes(id)){alert('This section is available only to Admin.');return;}document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');const titles={dashboard:['Dashboard','Company productivity overview'],employees:['Employees','Employee records and departments'],tasks:['Tasks','Assigned work and deadlines'],attendance:['Attendance','Daily attendance tracking'],hours:['Working Hours','Check-in, check-out and hours'],reports:['Reports','Productivity and department summaries'],ai:['AI Analysis','Data-based productivity insights'],settings:['Settings','Configure the demo application'],leave:['Leave Requests','Leave applications and decisions'],approvals:['Approvals','Configurable request and financial approval workflow'],audit:['Audit Trail','Local record of actions and changes']};document.getElementById('pageTitle').textContent=titles[id][0];document.getElementById('pageSub').textContent=titles[id][1];refresh();if(id==='attendance'){syncServerAttendance();clearInterval(attendancePollTimer);attendancePollTimer=setInterval(()=>syncServerAttendance(),5000)}}
+function emp(id){return db.employees.find(x=>x.id===id)?.name||'Unknown'}
+function calc(){
+ const tasks=currentUser==='Employee'?db.tasks.filter(x=>x.e===currentEmployeeId):db.tasks;
+ const attendance=currentUser==='Employee'?db.attendance.filter(x=>x.e===currentEmployeeId):db.attendance;
+ const total=tasks.length,completed=tasks.filter(x=>x.status==='Completed').length,pending=tasks.filter(x=>x.status==='Pending').length;
+ const taskRate=total?completed/total*100:0;
+ const present=attendance.filter(x=>x.status!=='Absent').length, attRate=attendance.length?present/attendance.length*100:0;
+ const combined=(taskRate*db.settings.taskWeight+attRate*db.settings.attendanceWeight)/100;
+ return {total,completed,pending,taskRate,attRate,combined,present};
+}
+function refresh(){document.querySelectorAll('.admin-only').forEach(x=>x.classList.toggle('hidden-admin',currentUser!=='Admin'));const addTask=document.querySelector('#tasks .toolbar > button');if(addTask)addTask.style.display=currentUser==='Admin'?'inline-block':'none';renderDashboard();renderEmployees();renderTasks();renderAttendance();renderHours();renderReports();renderLeave();renderApprovals();renderAudit();
+document.getElementById('company').value=db.settings.company;document.getElementById('taskWeight').value=db.settings.taskWeight;document.getElementById('attendanceWeight').value=db.settings.attendanceWeight;
+document.getElementById('approvalThreshold').value=db.settings.approvalThreshold??50000;
+document.getElementById('workflowController').value=db.settings.workflowController||'Department supervisor or administrator';
+document.getElementById('workflowMode').value=db.settings.workflowMode||'Automatic rules';
+document.getElementById('defaultReviewer').value=db.settings.defaultReviewer||'Department Supervisor';}
+function renderDashboard(){
+ const c=calc();document.getElementById('cEmployees').textContent=currentUser==='Employee'?'1':db.employees.length;document.getElementById('cCompleted').textContent=c.completed;document.getElementById('cPending').textContent=c.pending;document.getElementById('cProductivity').textContent=Math.round(c.taskRate)+'%';document.getElementById('overall').textContent=Math.round(c.taskRate)+'%';document.getElementById('overallBar').style.width=c.taskRate+'%';document.getElementById('overallText').textContent=currentUser==='Employee'?`Your ${c.completed} completed out of ${c.total} assigned tasks.`:`${c.completed} completed out of ${c.total} assigned tasks.`;
+ const visibleTasks=currentUser==='Employee'?db.tasks.filter(t=>t.e===currentEmployeeId):db.tasks;document.getElementById('recent').innerHTML=visibleTasks.slice(-5).reverse().map(t=>`<tr><td>${emp(t.e)}</td><td>${t.title}</td><td><span class="status ${t.status.toLowerCase()}">${t.status}</span></td><td>${t.deadline}</td></tr>`).join('');
+ const vals=[72,81,76,88,75,91,84],days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];document.getElementById('weeklyChart').innerHTML=vals.map((v,i)=>`<div class="bar-item"><div class="bar-val">${v}%</div><div class="bar" style="height:${v*1.8}px"></div><div class="bar-label">${days[i]}</div></div>`).join('');
+}
+function renderEmployees(){const q=(document.getElementById('empSearch')?.value||'').toLowerCase();document.getElementById('employeesTable').innerHTML=db.employees.filter(e=>(e.name+e.dept+e.email).toLowerCase().includes(q)).map(e=>`<tr><td>${e.id}</td><td>${e.name}</td><td>${e.dept}</td><td>${e.email}</td><td><button class="btn danger" onclick="deleteEmployee('${e.id}')">Delete</button></td></tr>`).join('')}
+function renderTasks(){const q=(document.getElementById('taskSearch')?.value||'').toLowerCase(),f=document.getElementById('taskFilter')?.value||'All',source=(currentUser==='Employee'?db.tasks.filter(t=>t.e===currentEmployeeId):db.tasks);document.getElementById('tasksTable').innerHTML=source.filter(t=>(f==='All'||t.status===f)&&(t.title+emp(t.e)).toLowerCase().includes(q)).map(t=>`<tr><td>${emp(t.e)}</td><td>${t.title}</td><td>${t.deadline}</td><td><span class="status ${t.status.toLowerCase()}">${t.status}</span></td><td>${(currentUser==='Admin'||currentUser==='Manager')?`${(currentUser==='Admin'||currentUser==='Manager')?`<button class="btn secondary" onclick="cycleTask(${t.id})">Change Status</button>`:'<span class="muted small">View only</span>'}`:'<span class="muted small">View only</span>'}</td></tr>`).join('')}
+function renderAttendance(){
+ const today=new Date().toLocaleDateString('en-CA');
+ const allToday=db.attendance.filter(x=>x.date===today);
+ const visible=currentUser==='Employee'?allToday.filter(x=>x.e===currentEmployeeId):allToday;
+ document.getElementById('presentCount').textContent=visible.filter(x=>x.status==='Present'||x.status==='Late').length;
+ document.getElementById('absentCount').textContent=Math.max(0,(currentUser==='Employee'?1:db.employees.length)-visible.filter(x=>x.in||x.source==='server').length);
+ document.getElementById('lateCount').textContent=visible.filter(x=>x.status==='Late').length;
+ const adminPanel=document.getElementById('qrAdminPanel'),employeePanel=document.getElementById('qrEmployeePanel');
+ if(adminPanel)adminPanel.classList.toggle('hidden',currentUser!=='Admin'&&currentUser!=='Manager');
+ if(employeePanel)employeePanel.classList.toggle('hidden',currentUser==='Admin'||currentUser==='Manager');
+ const mode=document.getElementById('attendanceMode');if(mode)mode.textContent='Attendance is recorded through server-verified QR sessions.';
+ document.getElementById('attendanceTable').innerHTML=visible.slice().reverse().map(x=>`<tr><td>${emp(x.e)}</td><td>${x.date}</td><td>${x.in||'-'}</td><td>${x.out||'-'}</td><td><span class="status ${String(x.status||'Present').toLowerCase()}">${x.status||'Present'}</span></td><td>${x.source==='server'?'✓ Network + QR verified':'Local demo record'}</td></tr>`).join('');
+ if(currentUser==='Employee'){const mine=visible.find(x=>x.date===today);const m=document.getElementById('employeeAttendanceMessage');if(m)m.textContent=mine?.in?`Today's check-in: ${mine.in}${mine.out?' • Check-out: '+mine.out:''}`:'No server check-in recorded yet.';}
+}
+async function refreshQrCode(){if(!qrSessionActive||!apiToken)return;try{const d=await apiRequest('/api/attendance/qr',{method:'POST',body:JSON.stringify({})});const img=document.getElementById('attendanceQrImage');img.src=d.qrDataUrl;img.classList.remove('hidden');document.getElementById('qrPlaceholder').classList.add('hidden');activeQrExpiry=d.expiresAt;document.getElementById('qrState').textContent='Live • Rotates automatically';document.getElementById('qrMessage').textContent='Share this code only with employees who are physically present on the approved company network. Code refreshes every 50 seconds and expires after 60 seconds. QR links use the server LAN address when the admin opened WorkPulse through localhost.';}catch(e){document.getElementById('qrState').textContent='Could not generate QR';document.getElementById('qrMessage').textContent=e.message;}}
+function updateQrCountdown(){if(!qrSessionActive)return;const left=Math.max(0,Math.ceil((activeQrExpiry-Date.now())/1000));document.getElementById('qrCountdown').textContent=left+'s';document.getElementById('qrCountdown').style.color=left<=3?'#bd3030':'var(--primary)';if(left===0)document.getElementById('qrState').textContent='Code expired • refreshing';}
+async function startQrAttendance(){if(currentUser!=='Admin'&&currentUser!=='Manager')return alert('Only a manager or administrator can generate attendance QR codes.');qrSessionActive=true;document.getElementById('startQrBtn').style.display='none';document.getElementById('stopQrBtn').style.display='inline-block';document.getElementById('qrState').textContent='Starting session…';await refreshQrCode();clearInterval(qrRefreshTimer);clearInterval(qrCountdownTimer);qrRefreshTimer=setInterval(refreshQrCode,50000);qrCountdownTimer=setInterval(updateQrCountdown,250);updateQrCountdown();}
+function stopQrAttendance(){qrSessionActive=false;clearInterval(qrRefreshTimer);clearInterval(qrCountdownTimer);qrRefreshTimer=null;qrCountdownTimer=null;const img=document.getElementById('attendanceQrImage');if(img)img.classList.add('hidden');const placeholder=document.getElementById('qrPlaceholder');if(placeholder)placeholder.classList.remove('hidden');const countdown=document.getElementById('qrCountdown');if(countdown)countdown.textContent='—';const state=document.getElementById('qrState');if(state)state.textContent='Session stopped';const start=document.getElementById('startQrBtn');if(start)start.style.display='inline-block';const stop=document.getElementById('stopQrBtn');if(stop)stop.style.display='none';}
+async function employeeCheckout(){try{const d=await apiRequest('/api/attendance/checkout',{method:'POST',body:JSON.stringify({})});document.getElementById('employeeAttendanceMessage').textContent=d.message;await syncServerAttendance();}catch(e){document.getElementById('employeeAttendanceMessage').textContent=e.message;}}
+
+function hours(inT,outT){if(!inT||!outT)return 0;let [a,b]=inT.split(':').map(Number),[c,d]=outT.split(':').map(Number);return Math.max(0,(c*60+d-a*60-b)/60)}
+function renderHours(){let rows=db.attendance.filter(x=>x.in&&x.out&&(currentUser==='Admin'||x.e===currentEmployeeId)),total=rows.reduce((s,x)=>s+hours(x.in,x.out),0);document.getElementById('avgHours').textContent=(rows.length?total/rows.length:0).toFixed(1)+'h';document.getElementById('totalHours').textContent=total.toFixed(1)+'h';document.getElementById('hourRecords').textContent=rows.length;document.getElementById('hoursTable').innerHTML=rows.slice().reverse().map(x=>`<tr><td>${emp(x.e)}</td><td>${x.date}</td><td>${x.in}</td><td>${x.out}</td><td>${hours(x.in,x.out).toFixed(1)} h</td></tr>`).join('')}
+function renderReports(){const c=calc();document.getElementById('rTask').textContent=Math.round(c.taskRate)+'%';document.getElementById('rAttendance').textContent=Math.round(c.attRate)+'%';document.getElementById('rCombined').textContent=Math.round(c.combined)+'%';let ds={};db.employees.forEach(e=>{if(!ds[e.dept])ds[e.dept]={n:0,t:0,c:0};ds[e.dept].n++});db.tasks.forEach(t=>{let d=db.employees.find(e=>e.id===t.e)?.dept;if(ds[d]){ds[d].t++;if(t.status==='Completed')ds[d].c++}});document.getElementById('deptTable').innerHTML=Object.entries(ds).map(([d,x])=>`<tr><td>${d}</td><td>${x.n}</td><td>${x.t}</td><td>${x.c}</td><td>${x.t?Math.round(x.c/x.t*100):0}%</td></tr>`).join('')}
+function openModal(type){window.customModalSave=null;document.querySelector('#modalBg .modal-actions .primary').onclick=submitModal;modalType=type;document.getElementById('modalBg').style.display='flex';if(type==='employee'){document.getElementById('modalTitle').textContent='Add Employee';document.getElementById('modalBody').innerHTML='<div class="form"><label>Name</label><input id="mName"><label>Department</label><input id="mDept"><label>Email / Login ID</label><input id="mEmail" type="email"><label>Login Password</label><input id="mPassword" type="password" placeholder="Set employee password"><label>Access Role</label><select id="mRole"><option value="Employee">Employee</option><option value="Manager">Manager</option></select></div>'}else{document.getElementById('modalTitle').textContent='Add Task';document.getElementById('modalBody').innerHTML='<div class="form"><label>Employee</label><select id="mEmp">'+db.employees.map(e=>`<option value="${e.id}">${e.name}</option>`).join('')+'</select><label>Task</label><input id="mTask"><label>Deadline</label><input id="mDate" type="date"><label>Status</label><select id="mStatus"><option>Pending</option><option>Completed</option><option>Overdue</option></select></div>'}}
+function openEmployee(){openModal('employee')}function openTask(){openModal('task')}function closeModal(){document.getElementById('modalBg').style.display='none'}
+async function submitModal(){
+ let auditRecord='',auditDetails='';
+ if(modalType==='employee'){
+  const name=document.getElementById('mName').value.trim(),dept=document.getElementById('mDept').value.trim(),email=document.getElementById('mEmail').value.trim().toLowerCase(),password=document.getElementById('mPassword').value.trim(),role=document.getElementById('mRole').value;
+  if(!name||!dept||!email||!password)return alert('Fill all fields including password');
+  if(db.employees.some(x=>(x.email||'').toLowerCase()===email))return alert('This email is already registered.');
+  let created;try{const result=await apiRequest('/api/admin/employees',{method:'POST',body:JSON.stringify({name,dept,email,password,role})});created=result.user;}catch(err){return alert('Could not create server employee: '+err.message)}
+  db.employees.push({id:created.id,name,dept,email,role:created.role});auditRecord=email;auditDetails='Department: '+dept+'; Role: '+role;
+ }else{
+  const title=document.getElementById('mTask').value.trim();if(!title)return alert('Enter a task');
+  const employeeId=document.getElementById('mEmp').value,deadline=document.getElementById('mDate').value||new Date().toISOString().slice(0,10),status=document.getElementById('mStatus').value;
+  db.tasks.push({id:Date.now(),e:employeeId,title,deadline,status});auditRecord=title;auditDetails='Assigned to '+emp(employeeId);
+ }
+ audit(modalType==='employee'?'Employee created':'Task created',auditRecord,auditDetails);save();closeModal();refresh();
+}
+function deleteEmployee(id){if(!confirm('Delete this employee?'))return;audit('Employee deleted',id,emp(id));db.employees=db.employees.filter(x=>x.id!==id);db.tasks=db.tasks.filter(x=>x.e!==id);db.attendance=db.attendance.filter(x=>x.e!==id);save();refresh()}
+
+function deleteAttendance(id){
+ if(currentUser!=='Admin')return alert('Only admin can delete attendance records.');
+ const record=db.attendance.find(x=>x.id===id);
+ if(!record)return;
+ if(!confirm(`Delete attendance for ${emp(record.e)} on ${record.date}?`))return;
+ db.attendance=db.attendance.filter(x=>x.id!==id);
+ save();refresh();
+}
+function cycleTask(id){if(currentUser!=='Admin'&&currentUser!=='Manager'){alert('Only a Manager or Administrator can change task status.');return;}let t=db.tasks.find(x=>x.id===id),states=['Pending','Completed','Overdue'];t.status=states[(states.indexOf(t.status)+1)%3];audit('Task status changed',t.title,'New status: '+t.status);save();refresh()}
+function selectedAttendanceEmployee(){
+ const id=currentUser==='Employee'?currentEmployeeId:document.getElementById('attendanceEmployee')?.value;
+ return db.employees.find(x=>x.id===id);
+}
+function checkIn(){alert('Manual check-in is disabled. Use the Smart QR Attendance portal.')}
+function checkOut(){employeeCheckout()}
+
+function esc(t){return String(t).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function aiEmployeeScores(){return db.employees.map(e=>{let tasks=db.tasks.filter(t=>t.e===e.id),done=tasks.filter(t=>t.status==='Completed').length,taskRate=tasks.length?done/tasks.length*100:0;let a=db.attendance.filter(x=>x.e===e.id),attRate=a.length?a.filter(x=>x.status==='Present').length/a.length*100:0;let score=Math.round(taskRate*(db.settings.taskWeight/100)+attRate*(db.settings.attendanceWeight/100));return {name:e.name,score,done,total:tasks.length,attendance:Math.round(attRate)}}).sort((a,b)=>b.score-a.score)}
+function svgBarChart(items){if(!items.length)return '<div class="ai-empty">No employee data available yet.</div>';let w=760,h=230,p=34,bw=Math.min(54,(w-p*2)/items.length*.62),max=100,step=(w-p*2)/items.length;let bars=items.map((x,i)=>{let bh=Math.max(3,(x.score/max)*(h-62)),xpos=p+i*step+(step-bw)/2,y=h-35-bh;return `<rect class="chart-bar" x="${xpos}" y="${y}" width="${bw}" height="${bh}" rx="8"><title>${esc(x.name)}: ${x.score}%</title></rect><text class="chart-axis" x="${xpos+bw/2}" y="${h-14}" text-anchor="middle">${esc(x.name.split(' ')[0])}</text><text class="chart-axis" x="${xpos+bw/2}" y="${y-7}" text-anchor="middle">${x.score}%</text>`}).join('');let grid=[25,50,75,100].map(v=>{let y=h-35-(v/max)*(h-62);return `<line class="chart-grid" x1="${p}" x2="${w-p}" y1="${y}" y2="${y}"/><text class="chart-axis" x="4" y="${y+3}">${v}</text>`}).join('');return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="wpGrad" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#7c6cf0"/><stop offset="1" stop-color="#5b5ce2"/></linearGradient></defs>${grid}${bars}</svg>`}
+function svgDonut(taskRate,attRate){let w=760,h=230,cx=380,cy=115,r=78,c=2*Math.PI*r;let vals=[Math.max(0,Math.min(100,taskRate)),Math.max(0,Math.min(100,attRate))];let a=vals[0]/100*c;return `<svg viewBox="0 0 ${w} ${h}"><defs><linearGradient id="d1" x1="0" x2="1"><stop stop-color="#5b5ce2"/><stop offset="1" stop-color="#9b7cff"/></linearGradient></defs><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#edf0f7" stroke-width="25"/><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="url(#d1)" stroke-width="25" stroke-dasharray="${a} ${c-a}" transform="rotate(-90 ${cx} ${cy})" stroke-linecap="round"/><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#35b987" stroke-width="25" stroke-dasharray="${c-a} ${a}" stroke-dashoffset="-${a}" transform="rotate(-90 ${cx} ${cy})" stroke-linecap="round" opacity=".95"/><text x="${cx}" y="110" text-anchor="middle" font-size="30" font-weight="800" fill="#101828">${Math.round((taskRate+attRate)/2)}%</text><text x="${cx}" y="132" text-anchor="middle" class="chart-axis">activity index</text><circle cx="275" cy="205" r="6" fill="#6b5ce7"/><text x="288" y="209" class="chart-axis">Task completion ${Math.round(taskRate)}%</text><circle cx="500" cy="205" r="6" fill="#35b987"/><text x="513" y="209" class="chart-axis">Attendance ${Math.round(attRate)}%</text></svg>`}
+function svgTaskChart(completed,pending,overdue){let vals=[['Completed',completed,'#35b987'],['Pending',pending,'#f0b33d'],['Overdue',overdue,'#df4f67']],total=Math.max(1,completed+pending+overdue),w=760,h=230,p=38,step=(w-p*2)/3,bw=105;let bars=vals.map((v,i)=>{let bh=Math.max(3,v[1]/total*(h-62)),x=p+i*step+(step-bw)/2,y=h-35-bh;return `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="9" fill="${v[2]}"><title>${v[0]}: ${v[1]}</title></rect><text class="chart-axis" x="${x+bw/2}" y="${h-14}" text-anchor="middle">${v[0]}</text><text class="chart-axis" x="${x+bw/2}" y="${y-7}" text-anchor="middle">${v[1]}</text>`}).join('');return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><line class="chart-grid" x1="${p}" x2="${w-p}" y1="${h-35}" y2="${h-35}"/>${bars}</svg>`}
+function generateAI(){let c=calc(),scores=aiEmployeeScores(),pending=c.pending,rate=Math.round(c.taskRate),att=Math.round(c.attRate),combined=Math.round(c.combined),top=scores[0],bottom=scores[scores.length-1],overdue=db.tasks.filter(t=>t.status==='Overdue').length;document.getElementById('aiScore').innerHTML=`<div class="ai-score"><div class="score-ring" style="--score:${combined*3.6}deg"><b>${combined}%</b></div><div><div class="label">Combined productivity</div><h3 style="margin:5px 0 3px">${combined>=80?'Strong momentum':combined>=60?'Stable performance':'Needs attention'}</h3><div class="muted">${rate}% task completion · ${att}% attendance</div></div></div>`;document.getElementById('aiInsights').innerHTML=`<div class="insight"><strong>Highest score</strong><span class="muted">${top?esc(top.name)+' · '+top.score+'%':'No employee data'}</span></div><div class="insight"><strong>Workload signal</strong><span class="muted">${pending} pending and ${overdue} overdue task${overdue===1?'':'s'} in the current dataset.</span></div><div class="insight"><strong>Attention point</strong><span class="muted">${bottom?esc(bottom.name)+' currently has the lowest combined score at '+bottom.score+'%.':'Add employee activity to generate recommendations.'}</span></div>`;document.getElementById('aiDonut').innerHTML=svgDonut(c.taskRate,c.attRate);document.getElementById('aiEmployees').innerHTML=svgBarChart(scores);document.getElementById('aiTasks').innerHTML=svgTaskChart(c.completed,pending,overdue)}
+
+async function loadAttendanceNetwork(){try{const d=await apiRequest('/api/admin/network');document.getElementById('allowedCidrs').value=(d.allowedCidrs||[]).join(', ');const ips=(d.serverIPv4||[]).map(x=>x.address+' (mask '+x.netmask+')').join(' • ');document.getElementById('networkInfo').textContent='Server network addresses: '+(ips||'No external IPv4 interface detected')+' • Admin browser IP: '+d.detectedClientIp;}catch(e){document.getElementById('networkInfo').textContent='Could not load network settings: '+e.message;}}
+async function saveAttendanceNetwork(){const msg=document.getElementById('networkMsg');msg.textContent='Saving…';try{const d=await apiRequest('/api/admin/network',{method:'PUT',body:JSON.stringify({allowedCidrs:document.getElementById('allowedCidrs').value})});document.getElementById('allowedCidrs').value=d.allowedCidrs.join(', ');msg.textContent=d.message+' New rules apply immediately.';msg.style.color='var(--green)';}catch(e){msg.textContent=e.message;msg.style.color='var(--red)';}}
+function saveSettings(){let tw=Number(taskWeight.value),aw=Number(attendanceWeight.value);if(tw+aw!==100)return alert('Task and attendance weights must total 100%.');db.settings.company=company.value.trim()||'Demo Company';db.settings.taskWeight=tw;db.settings.attendanceWeight=aw;db.settings.approvalThreshold=Math.max(0,Number(document.getElementById('approvalThreshold').value)||0);db.settings.workflowController=document.getElementById('workflowController').value;db.settings.workflowMode=document.getElementById('workflowMode').value;db.settings.defaultReviewer=document.getElementById('defaultReviewer').value.trim()||'Department Supervisor';audit('Settings updated','Workflow settings','Threshold ₹'+db.settings.approvalThreshold+'; mode '+db.settings.workflowMode);save();document.getElementById('userChip').textContent=currentUser+' • '+db.settings.company;document.getElementById('settingMsg').textContent='Settings saved.';refresh()}
+function resetData(){if(confirm('Reset all demo data? This clears employees, tasks, attendance, leave requests, approvals and audit history.')){db=structuredClone(seed);db.leaves=[];db.approvals=[];db.audit=[];save();refresh()}}
+
+function openLeave(){
+  const mine=currentUser==='Employee'?db.employees.filter(e=>e.id===currentEmployeeId):db.employees;
+  if(!mine.length)return alert('Add an employee first.');
+  openCustomModal('Request Leave',`<div class="form"><label>Employee</label><select id="lEmp">${mine.map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join('')}</select><label>Leave type</label><select id="lType"><option>Casual Leave</option><option>Sick Leave</option><option>Earned Leave</option><option>Unpaid Leave</option></select><div class="form-grid"><div><label>From</label><input id="lFrom" type="date" required></div><div><label>To</label><input id="lTo" type="date" required></div></div><label>Reason</label><input id="lReason" placeholder="Brief reason for leave"></div>`,()=>{
+    const e=document.getElementById('lEmp').value,from=document.getElementById('lFrom').value,to=document.getElementById('lTo').value,reason=document.getElementById('lReason').value.trim(),type=document.getElementById('lType').value;
+    if(!from||!to||to<from)return alert('Choose a valid leave date range.');
+    const days=Math.round((new Date(to+'T00:00:00')-new Date(from+'T00:00:00'))/86400000)+1;
+    db.leaves.unshift({id:Date.now(),e,type,from,to,days,reason,status:'Pending',created:new Date().toISOString()});
+    audit('Leave requested','Leave #'+Date.now(),emp(e)+' · '+type+' · '+from+' to '+to);save();refresh();closeModal();
+  });
+}
+function renderLeave(){
+  const all=currentUser==='Employee'?db.leaves.filter(x=>x.e===currentEmployeeId):db.leaves;
+  document.getElementById('leaveTotal').textContent=all.length;
+  document.getElementById('leavePending').textContent=all.filter(x=>x.status==='Pending').length;
+  document.getElementById('leaveApproved').textContent=all.filter(x=>x.status==='Approved').length;
+  document.getElementById('leaveRejected').textContent=all.filter(x=>x.status==='Rejected').length;
+  document.getElementById('leaveTable').innerHTML=all.map(x=>`<tr><td>${esc(emp(x.e))}</td><td>${esc(x.type)}</td><td>${x.from}</td><td>${x.to}</td><td>${x.days}</td><td>${esc(x.reason||'—')}</td><td><span class="status ${statusClass(x.status)}">${x.status}</span></td><td>${currentUser==='Admin'&&x.status==='Pending'?`<button class="btn primary" onclick="decideLeave(${x.id},'Approved')">Approve</button> <button class="btn danger" onclick="decideLeave(${x.id},'Rejected')">Reject</button>`:'—'}</td></tr>`).join('')||'<tr><td colspan="8" class="muted">No leave requests yet.</td></tr>';
+}
+function decideLeave(id,status){const x=db.leaves.find(x=>x.id===id);if(!x)return;x.status=status;audit('Leave '+status.toLowerCase(),'Leave #'+id,emp(x.e)+' · '+x.type);save();refresh();}
+function openCustomModal(title,body,onSave){document.getElementById('modalTitle').textContent=title;document.getElementById('modalBody').innerHTML=body;document.getElementById('modalBg').style.display='flex';window.customModalSave=onSave;document.querySelector('#modalBg .modal-actions .primary').onclick=()=>{if(window.customModalSave)window.customModalSave();};}
+function openApproval(){
+  const options=db.employees.map(e=>`<option value="${e.id}" ${currentEmployeeId===e.id?'selected':''}>${esc(e.name)} — ${esc(e.dept)}</option>`).join('');
+  openCustomModal('Create Approval Request',`<div class="form"><label>Request title</label><input id="aTitle" placeholder="e.g. Maintenance parts purchase"><label>Initiated by</label><select id="aEmp" ${currentUser==='Employee'?'disabled':''}>${options}</select><div class="form-grid"><div><label>Department</label><input id="aDept" readonly value="${esc(db.employees.find(e=>e.id===(currentEmployeeId||db.employees[0]?.id))?.dept||'Operations')}"></div><div><label>Amount (₹)</label><input id="aAmount" type="number" min="0" value="0"></div></div><label>Business justification</label><input id="aReason" placeholder="Explain why the request is needed"></div>`,()=>{
+    const title=document.getElementById('aTitle').value.trim(),eId=document.getElementById('aEmp').value,amount=Math.max(0,Number(document.getElementById('aAmount').value)||0),reason=document.getElementById('aReason').value.trim();
+    if(!title)return alert('Enter a request title.');
+    const threshold=Number(db.settings.approvalThreshold??50000),high=amount>threshold;
+    const item={id:Date.now(),title,e:eId,dept:db.employees.find(e=>e.id===eId)?.dept||'Unassigned',amount,reason,stage:'Department Review',status:'Pending',highValue:high,created:new Date().toISOString(),history:[{stage:'Submitted',by:currentUser==='Admin'?'Administrator':emp(eId),at:new Date().toISOString(),note:'Request submitted'}]};
+    db.approvals.unshift(item);audit('Approval request submitted','Request #'+item.id,title+' · ₹'+amount+' · '+(high?'finance review required':'standard route'));save();refresh();closeModal();
+  });
+  if(currentUser==='Employee'&&currentEmployeeId){const e=db.employees.find(e=>e.id===currentEmployeeId);if(e)document.getElementById('aDept').value=e.dept;}
+}
+function renderApprovals(){
+  const all=currentUser==='Employee'?db.approvals.filter(x=>x.e===currentEmployeeId):db.approvals;
+  const f=document.getElementById('approvalFilter')?.value||'All',rows=all.filter(x=>f==='All'||x.status===f);
+  document.getElementById('approvalPending').textContent=all.filter(x=>x.status==='Pending').length;
+  document.getElementById('financePending').textContent=all.filter(x=>x.status==='Pending'&&x.highValue&&x.stage==='Finance Review').length;
+  document.getElementById('approvalClosed').textContent=all.filter(x=>x.status!=='Pending').length;
+  document.getElementById('approvalsTable').innerHTML=rows.map(x=>{
+    let actions='—';
+    if(currentUser==='Admin'&&x.status==='Pending'){
+      if(x.stage==='Department Review')actions=`<button class="btn primary" onclick="advanceApproval(${x.id})">Complete review</button> <button class="btn danger" onclick="rejectApproval(${x.id})">Reject</button>`;
+      else if(x.stage==='Finance Review')actions=`<button class="btn primary" onclick="advanceApproval(${x.id})">Finance approve</button> <button class="btn danger" onclick="rejectApproval(${x.id})">Reject</button>`;
+      else actions=`<button class="btn primary" onclick="advanceApproval(${x.id})">Final approve</button> <button class="btn danger" onclick="rejectApproval(${x.id})">Reject</button>`;
+    }
+    return `<tr><td>${esc(x.title)}<div class="small">${esc(x.reason||'')}</div></td><td>${esc(emp(x.e))}</td><td>${esc(x.dept)}</td><td>₹${Number(x.amount).toLocaleString('en-IN')}</td><td>${esc(x.stage)}</td><td><span class="status ${statusClass(x.status)}">${x.status}</span></td><td>${actions}</td></tr>`;
+  }).join('')||'<tr><td colspan="7" class="muted">No approval requests match this filter.</td></tr>';
+}
+function advanceApproval(id){
+  const x=db.approvals.find(x=>x.id===id);if(!x||x.status!=='Pending')return;
+  let note='';
+  if(x.stage==='Department Review'){if(x.highValue){x.stage='Finance Review';note='Department review completed; routed to finance due to threshold.';}else{x.stage='Final Decision';note='Department review completed; routed to final decision.';}}
+  else if(x.stage==='Finance Review'){x.stage='Final Decision';note='Finance review completed; routed to final decision.';}
+  else{x.status='Approved';x.stage='Closed';note='Final approval recorded.';}
+  x.history.push({stage:x.stage,by:currentUser,at:new Date().toISOString(),note});audit('Approval workflow advanced','Request #'+id,note);save();refresh();
+}
+function rejectApproval(id){const x=db.approvals.find(x=>x.id===id);if(!x)return;const reason=prompt('Reason for rejection (optional):')||'No reason provided';x.status='Rejected';x.stage='Closed';x.history.push({stage:'Rejected',by:currentUser,at:new Date().toISOString(),note:reason});audit('Approval rejected','Request #'+id,reason);save();refresh();}
+function renderAudit(){
+  const q=(document.getElementById('auditSearch')?.value||'').toLowerCase();
+  const rows=(db.audit||[]).filter(x=>(x.actor+x.action+x.record+x.details).toLowerCase().includes(q)).slice(0,200);
+  document.getElementById('auditTable').innerHTML=rows.map(x=>`<tr><td>${new Date(x.time).toLocaleString()}</td><td>${esc(x.actor)}</td><td>${esc(x.action)}</td><td>${esc(x.record)}</td><td>${esc(x.details)}</td></tr>`).join('')||'<tr><td colspan="5" class="muted">No audit events recorded yet.</td></tr>';
+}
+function exportAudit(){csvDownload('workpulse-audit.csv',[['Timestamp','Actor','Action','Record','Details'],...(db.audit||[]).map(x=>[x.time,x.actor,x.action,x.record,x.details])]);}
+function exportWorkpulse(){
+  const rows=[['Type','ID','Employee','Department','Title / Type','Status','Date / Deadline','Amount / Hours']];
+  db.tasks.forEach(x=>rows.push(['Task',x.id,emp(x.e),db.employees.find(e=>e.id===x.e)?.dept||'',x.title,x.status,x.deadline,'']));
+  db.attendance.forEach(x=>rows.push(['Attendance',x.id,emp(x.e),db.employees.find(e=>e.id===x.e)?.dept||'',x.date,x.status,x.in+'-'+x.out,x.in&&x.out?hours(x.in,x.out).toFixed(2):'']));
+  db.leaves.forEach(x=>rows.push(['Leave',x.id,emp(x.e),db.employees.find(e=>e.id===x.e)?.dept||'',x.type,x.status,x.from+' to '+x.to,x.days]));
+  db.approvals.forEach(x=>rows.push(['Approval',x.id,emp(x.e),x.dept,x.title,x.status,x.stage,x.amount]));
+  csvDownload('workpulse-export.csv',rows);audit('Data exported','WorkPulse','Tasks, attendance, leave and approval records exported to CSV');save();
+}
+</script>
+</body>
+</html>
